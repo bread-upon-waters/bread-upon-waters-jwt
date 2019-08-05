@@ -3,7 +3,10 @@ package za.co.breaduponwaters.breaduponwatersjwt.security;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.org.apache.xml.internal.security.algorithms.SignatureAlgorithm;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -11,6 +14,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import static za.co.breaduponwaters.breaduponwatersjwt.constants.SecurityConstants.*;
 import za.co.breaduponwaters.breaduponwatersjwt.models.ApplicationUser;
 
 import javax.servlet.FilterChain;
@@ -43,11 +48,19 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
     }
 
     @Override
-    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
+    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication auth) throws IOException, ServletException {
         Date exp = new Date(System.currentTimeMillis() + EXPIRATION_TIME);
-        Key key = Keys.hmacShaKeyFor(KEY.getBytes());
-        Claims  claims = Jwts.claims().setSubject(((User) auth.getPrincipal()).getUsername());
-        String token = Jwts.builder().setClaims(claims).signWith(key, SignatureAlgorithm.HS512).setExpiration(exp).compact();
+        byte[] signingKey = JWT_SECRET.getBytes();
+        Key key = Keys.hmacShaKeyFor(signingKey);
+        Claims claims = Jwts.claims()
+                .setSubject(((User) auth.getPrincipal()).getUsername());
+
+        String token = Jwts.builder()
+                .setClaims(claims)
+                .signWith(key, SignatureAlgorithm.HS512)
+                .setExpiration(exp)
+                .compact();
+        
         response.addHeader("token", token);
     }
 }
