@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/secure")
-public class SecuredController {
+public class UnSecuredController {
 
     public ResponseEntity reachSecureEndpoint() {
         return new ResponseEntity("If your are reading this you reached a secure endpoint", HttpStatus.OK);
